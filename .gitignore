@@ -240,6 +240,10 @@ notebooks/data.csv
 /data/processed/*
 !/data/**/.gitkeep
 
+# Generated model & vectorizer binary artifacts in root models/ directory
+/models/*
+!/models/**/.gitkeep
+
 notebooks/
 experimentflow.txt
 ignore.txt

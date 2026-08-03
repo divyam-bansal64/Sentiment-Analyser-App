@@ -29,6 +29,12 @@ DEFAULT_SUBLINEAR_TF = True
 DEFAULT_C = 0.1329
 DEFAULT_MAX_ITER = 1000
 
+# DagsHub & MLflow Configuration Constants
+DAGSHUB_TOKEN_ENV = "CAPSTONE_TEST"
+DAGSHUB_REPO_OWNER = "divyam-bansal64"
+DAGSHUB_REPO_NAME = "mlops_capstone_project"
+MLFLOW_EXPERIMENT_NAME = "my-dvc-pipeline"
+
 # Data Directories & Path Configurations
 DATA_DIR = "data"
 RAW_DATA_DIR = os.path.join(DATA_DIR, "raw")

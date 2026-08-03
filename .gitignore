@@ -244,6 +244,14 @@ notebooks/data.csv
 /models/*
 !/models/**/.gitkeep
 
+# Local MLflow Experiment Tracking Directory
+mlruns/
+.mlruns/
+
+# Generated evaluation reports in root reports/ directory
+/reports/*
+!/reports/**/.gitkeep
+
 notebooks/
 experimentflow.txt
 ignore.txt

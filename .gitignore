@@ -218,3 +218,10 @@ __marimo__/
 .streamlit/secrets.toml
 
 projectflow.txt
+ignore.txt
+experimentflow.txt
+
+notebooks/
+mlflow.db
+.agents/
+

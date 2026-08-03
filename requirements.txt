@@ -1,8 +1,33 @@
-loguru
-mkdocs
-pip
-python-dotenv
-ruff
-tqdm
-typer
--e .
+# Core Data Science & ML
+pandas>=2.0.0
+numpy>=1.26.0
+scikit-learn>=1.4.0
+scipy>=1.12.0
+matplotlib>=3.8.0
+
+# NLP & Text Preprocessing
+nltk>=3.8.1
+beautifulsoup4>=4.12.0
+
+# MLOps & Experiment Tracking
+mlflow>=2.15.0
+dagshub>=0.3.34
+dvc>=3.50.0
+dvc-s3>=3.0.0
+
+# Web Serving & Deployment
+Flask>=3.0.0
+fastapi>=0.110.0
+uvicorn>=0.28.0
+waitress>=3.0.0
+prometheus_client>=0.20.0
+
+# Utilities & Helper Libraries
+python-dotenv>=1.0.0
+PyYAML>=6.0.0
+joblib>=1.3.0
+tqdm>=4.66.0
+typer>=0.12.0
+ipykernel>=6.29.0
+mkdocs>=1.5.0
+ruff>=0.3.0

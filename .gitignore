@@ -217,11 +217,30 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-projectflow.txt
-ignore.txt
-experimentflow.txt
+# Environment secrets & local config
+.env
 
-notebooks/
+# Local DVC remote storage
+local_s3/
+
+# Local MLflow database & run logs
 mlflow.db
+mlruns/
+
+# Workspace agent state
 .agents/
 
+# Large datasets in notebooks/ (keep python scripts & summary files tracked)
+notebooks/IMDB Dataset.csv
+notebooks/data.csv
+
+# Generated datasets in root data/ directory (preserves capstone_src/data)
+/data/raw/*
+/data/interim/*
+/data/processed/*
+!/data/**/.gitkeep
+
+notebooks/
+experimentflow.txt
+ignore.txt
+projectflow.txt

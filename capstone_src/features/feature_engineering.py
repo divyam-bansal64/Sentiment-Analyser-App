@@ -18,11 +18,8 @@ from capstone_src.logger import logging
 from capstone_src import constants
 
 
-def load_params(params_path: str = 'params.yaml') -> dict:
-    """
-    Load parameters from a YAML file.
-    Falls back to default constants if params.yaml is missing or invalid.
-    """
+def load_params(params_path: str) -> dict:
+    """Load parameters from a YAML file."""
     try:
         with open(params_path, 'r') as file:
             params = yaml.safe_load(file)

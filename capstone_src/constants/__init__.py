@@ -25,6 +25,10 @@ DEFAULT_MAX_FEATURES = 15000
 DEFAULT_NGRAM_RANGE = (1, 2)
 DEFAULT_SUBLINEAR_TF = True
 
+# Model Building Defaults (winning C parameter from practice experiments)
+DEFAULT_C = 0.1329
+DEFAULT_MAX_ITER = 1000
+
 # Data Directories & Path Configurations
 DATA_DIR = "data"
 RAW_DATA_DIR = os.path.join(DATA_DIR, "raw")
@@ -47,3 +51,8 @@ TEST_FEATURES_FILE_NAME = "test_tfidf.csv"
 MODELS_DIR = "models"
 VECTORIZER_FILE_NAME = "vectorizer.pkl"
 MODEL_FILE_NAME = "model.pkl"
+
+# Reports & Metrics Directories & File Names
+REPORTS_DIR = "reports"
+METRICS_FILE_NAME = "metrics.json"
+EXPERIMENT_INFO_FILE_NAME = "experiment_info.json"

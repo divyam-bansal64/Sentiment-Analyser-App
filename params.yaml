@@ -1,0 +1,13 @@
+data_ingestion:
+  test_size: 0.2
+
+feature_engineering:
+  max_features: 15000
+  ngram_range:
+    - 1
+    - 2
+  sublinear_tf: true
+
+model_building:
+  C: 0.1329
+  max_iter: 1000

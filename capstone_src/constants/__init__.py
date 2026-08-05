@@ -10,10 +10,10 @@ AWS_ACCESS_KEY_ID_ENV = "AWS_ACCESS_KEY_ID"
 AWS_SECRET_ACCESS_KEY_ENV = "AWS_SECRET_ACCESS_KEY"
 
 # Toggle to prefer S3 over local/URL data source
-USE_S3 = False
+USE_S3 = True
 
 # Fallback Local Dataset File Path (used when S3 is unavailable or USE_S3 is False)
-FALLBACK_DATA_PATH = os.path.join("notebooks", "data.csv")
+FALLBACK_DATA_PATH = os.path.join("notebooks", "IMDB Dataset.csv")
 FALLBACK_DATA_URL = FALLBACK_DATA_PATH  # Alias for backward compatibility
 
 # Data Ingestion Defaults (used if params.yaml is not yet generated)
@@ -51,8 +51,10 @@ TRAIN_FILE_NAME = "train.csv"
 TEST_FILE_NAME = "test.csv"
 TRAIN_PROCESSED_FILE_NAME = "train_processed.csv"
 TEST_PROCESSED_FILE_NAME = "test_processed.csv"
-TRAIN_FEATURES_FILE_NAME = "train_tfidf.csv"
-TEST_FEATURES_FILE_NAME = "test_tfidf.csv"
+TRAIN_FEATURES_FILE_NAME = "train_tfidf.npz"
+TEST_FEATURES_FILE_NAME = "test_tfidf.npz"
+TRAIN_LABELS_FILE_NAME = "train_labels.npy"
+TEST_LABELS_FILE_NAME = "test_labels.npy"
 
 # Models & Vectorizer Directories & File Names
 MODELS_DIR = "models"

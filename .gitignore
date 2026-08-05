@@ -252,6 +252,10 @@ mlruns/
 /reports/*
 !/reports/**/.gitkeep
 
+# Generated application log files in root logs/ directory
+/logs/*
+!/logs/**/.gitkeep
+
 notebooks/
 experimentflow.txt
 ignore.txt

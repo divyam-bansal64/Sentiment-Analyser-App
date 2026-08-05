@@ -11,7 +11,7 @@ if str(ROOT_DIR) not in sys.path:
 import json
 import pickle
 import numpy as np
-import pandas as pd
+from scipy import sparse
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -69,21 +69,20 @@ def load_model(file_path: str):
         raise
 
 
-def load_data(file_path: str) -> pd.DataFrame:
-    """Load evaluation feature data from a CSV file."""
+def load_processed_test_data(features_path: str, labels_path: str):
+    """Loads sparse TF-IDF test matrix (.npz) and test sentiment labels (.npy)."""
     try:
-        df = pd.read_csv(file_path)
-        logging.info('Data loaded successfully from %s with %d records.', file_path, len(df))
-        return df
-    except pd.errors.ParserError as e:
-        logging.error('Failed to parse the CSV file from %s: %s', file_path, e)
-        raise
+        X_test = sparse.load_npz(features_path)
+        y_test = np.load(labels_path)
+        logging.info('Sparse test features loaded from %s (shape: %s)', features_path, X_test.shape)
+        logging.info('Test labels loaded from %s (shape: %s)', labels_path, y_test.shape)
+        return X_test, y_test
     except Exception as e:
-        logging.error('Unexpected error occurred while loading data from %s: %s', file_path, e)
+        logging.error('Error loading processed sparse test features/labels: %s', e)
         raise
 
 
-def evaluate_model(clf, X_test: np.ndarray, y_test: np.ndarray) -> dict:
+def evaluate_model(clf, X_test, y_test: np.ndarray) -> dict:
     """
     Evaluate the model and return accuracy, precision, recall, f1_score, and AUC metrics.
     Handles decision_function for LinearSVC and predict_proba for probabilistic models.
@@ -156,10 +155,9 @@ def main():
 
             processed_dir = constants.PROCESSED_DATA_DIR
             test_features_path = os.path.join(processed_dir, constants.TEST_FEATURES_FILE_NAME)
-            test_data = load_data(test_features_path)
+            test_labels_path = os.path.join(processed_dir, constants.TEST_LABELS_FILE_NAME)
 
-            X_test = test_data.iloc[:, :-1].values
-            y_test = test_data.iloc[:, -1].values
+            X_test, y_test = load_processed_test_data(test_features_path, test_labels_path)
 
             metrics = evaluate_model(clf, X_test, y_test)
 
@@ -178,7 +176,7 @@ def main():
                     mlflow.log_param(param_name, param_value)
 
             # Log model to MLflow
-            mlflow.sklearn.log_model(clf, name="model")
+            mlflow.sklearn.log_model(clf, artifact_path="model")
 
             # Save model experiment info for registration stage
             experiment_info_path = os.path.join(reports_dir, constants.EXPERIMENT_INFO_FILE_NAME)

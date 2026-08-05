@@ -12,6 +12,7 @@ import pickle
 import yaml
 import numpy as np
 import pandas as pd
+from scipy import sparse
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from capstone_src.logger import logging
@@ -64,7 +65,10 @@ def apply_tfidf(
     ngram_range: list,
     sublinear_tf: bool
 ) -> tuple:
-    """Apply TF-IDF Vectorizer to the text data using winning parameters."""
+    """
+    Applies TF-IDF Vectorizer to the text data.
+    Keeps feature matrices as lightweight SciPy Sparse Matrices (saves 95% RAM!).
+    """
     try:
         logging.info(
             "Applying TF-IDF Vectorizer (max_features=%d, ngram_range=%s, sublinear_tf=%s)...",
@@ -88,12 +92,6 @@ def apply_tfidf(
         X_train_tfidf = vectorizer.fit_transform(X_train)
         X_test_tfidf = vectorizer.transform(X_test)
 
-        train_df = pd.DataFrame(X_train_tfidf.toarray())
-        train_df['label'] = y_train
-
-        test_df = pd.DataFrame(X_test_tfidf.toarray())
-        test_df['label'] = y_test
-
         # Save fitted vectorizer artifact
         models_dir = constants.MODELS_DIR
         os.makedirs(models_dir, exist_ok=True)
@@ -103,18 +101,29 @@ def apply_tfidf(
             pickle.dump(vectorizer, f)
 
         logging.info('TF-IDF Vectorizer applied successfully. Saved vectorizer artifact to %s', vectorizer_path)
-        return train_df, test_df
+        return X_train_tfidf, y_train, X_test_tfidf, y_test
     except Exception as e:
         logging.error('Error during TF-IDF vectorization: %s', e)
         raise
 
 
-def save_data(df: pd.DataFrame, file_path: str) -> None:
-    """Save the dataframe to a CSV file."""
+def save_processed_data(X_train_tfidf, y_train, X_test_tfidf, y_test, processed_dir: str) -> None:
+    """Saves sparse feature matrices (.npz) and sentiment labels (.npy) efficiently."""
     try:
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        df.to_csv(file_path, index=False)
-        logging.info('Data saved to %s', file_path)
+        os.makedirs(processed_dir, exist_ok=True)
+
+        train_features_path = os.path.join(processed_dir, constants.TRAIN_FEATURES_FILE_NAME)
+        test_features_path = os.path.join(processed_dir, constants.TEST_FEATURES_FILE_NAME)
+        train_labels_path = os.path.join(processed_dir, constants.TRAIN_LABELS_FILE_NAME)
+        test_labels_path = os.path.join(processed_dir, constants.TEST_LABELS_FILE_NAME)
+
+        sparse.save_npz(train_features_path, X_train_tfidf)
+        sparse.save_npz(test_features_path, X_test_tfidf)
+        np.save(train_labels_path, y_train)
+        np.save(test_labels_path, y_test)
+
+        logging.info('Saved sparse TF-IDF matrices to %s & %s', train_features_path, test_features_path)
+        logging.info('Saved label arrays to %s & %s', train_labels_path, test_labels_path)
     except Exception as e:
         logging.error('Unexpected error occurred while saving the data: %s', e)
         raise
@@ -136,14 +145,12 @@ def main():
         train_data = load_data(train_interim_path)
         test_data = load_data(test_interim_path)
 
-        train_df, test_df = apply_tfidf(train_data, test_data, max_features, ngram_range, sublinear_tf)
+        X_train_tfidf, y_train, X_test_tfidf, y_test = apply_tfidf(
+            train_data, test_data, max_features, ngram_range, sublinear_tf
+        )
 
         processed_dir = constants.PROCESSED_DATA_DIR
-        train_out_path = os.path.join(processed_dir, constants.TRAIN_FEATURES_FILE_NAME)
-        test_out_path = os.path.join(processed_dir, constants.TEST_FEATURES_FILE_NAME)
-
-        save_data(train_df, train_out_path)
-        save_data(test_df, test_out_path)
+        save_processed_data(X_train_tfidf, y_train, X_test_tfidf, y_test, processed_dir)
 
         logging.info("Feature Engineering stage execution completed successfully.")
     except Exception as e:

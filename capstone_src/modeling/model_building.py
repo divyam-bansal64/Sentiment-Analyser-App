@@ -11,7 +11,7 @@ if str(ROOT_DIR) not in sys.path:
 import pickle
 import yaml
 import numpy as np
-import pandas as pd
+from scipy import sparse
 from sklearn.svm import LinearSVC
 
 from capstone_src.logger import logging
@@ -44,21 +44,20 @@ def load_params(params_path: str) -> dict:
         raise
 
 
-def load_data(file_path: str) -> pd.DataFrame:
-    """Load processed TF-IDF feature data from a CSV file."""
+def load_processed_data(features_path: str, labels_path: str):
+    """Loads sparse TF-IDF matrix (.npz) and sentiment labels (.npy)."""
     try:
-        df = pd.read_csv(file_path)
-        logging.info('Data loaded successfully from %s with %d records.', file_path, len(df))
-        return df
-    except pd.errors.ParserError as e:
-        logging.error('Failed to parse the CSV file from %s: %s', file_path, e)
-        raise
+        X_train = sparse.load_npz(features_path)
+        y_train = np.load(labels_path)
+        logging.info('Sparse train features loaded from %s (shape: %s)', features_path, X_train.shape)
+        logging.info('Train labels loaded from %s (shape: %s)', labels_path, y_train.shape)
+        return X_train, y_train
     except Exception as e:
-        logging.error('Unexpected error occurred while loading data from %s: %s', file_path, e)
+        logging.error('Error loading processed sparse train features/labels: %s', e)
         raise
 
 
-def train_model(X_train: np.ndarray, y_train: np.ndarray, C: float, max_iter: int) -> LinearSVC:
+def train_model(X_train, y_train: np.ndarray, C: float, max_iter: int) -> LinearSVC:
     """Train the winning LinearSVC model using specified C and max_iter parameters."""
     try:
         logging.info("Training LinearSVC model (C=%.4f, max_iter=%d)...", C, max_iter)
@@ -96,12 +95,9 @@ def main():
 
         processed_dir = constants.PROCESSED_DATA_DIR
         train_features_path = os.path.join(processed_dir, constants.TRAIN_FEATURES_FILE_NAME)
+        train_labels_path = os.path.join(processed_dir, constants.TRAIN_LABELS_FILE_NAME)
 
-        train_data = load_data(train_features_path)
-
-        # Separate feature matrix X and target label y
-        X_train = train_data.iloc[:, :-1].values
-        y_train = train_data.iloc[:, -1].values
+        X_train, y_train = load_processed_data(train_features_path, train_labels_path)
 
         clf = train_model(X_train, y_train, C=C, max_iter=max_iter)
 

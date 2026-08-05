@@ -34,6 +34,7 @@ DAGSHUB_TOKEN_ENV = "CAPSTONE_TEST"
 DAGSHUB_REPO_OWNER = "divyam-bansal64"
 DAGSHUB_REPO_NAME = "mlops_capstone_project"
 MLFLOW_EXPERIMENT_NAME = "my-dvc-pipeline"
+REGISTERED_MODEL_NAME = "sentiment_classifier_model"
 
 # Data Directories & Path Configurations
 DATA_DIR = "data"

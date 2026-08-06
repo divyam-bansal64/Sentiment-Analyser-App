@@ -1,0 +1,14 @@
+# Web Framework & Production WSGI Server
+Flask>=3.0.0
+gunicorn>=21.2.0
+prometheus_client>=0.20.0
+
+# ML & NLP Preprocessing
+pandas>=2.0.0
+numpy>=1.26.0
+scikit-learn>=1.4.0
+nltk>=3.8.1
+
+# Experiment Tracking & Model Registry
+mlflow>=2.15.0
+dagshub>=0.3.34

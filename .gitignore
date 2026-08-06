@@ -256,7 +256,14 @@ mlruns/
 /logs/*
 !/logs/**/.gitkeep
 
+# Scratch notes and temporary test scripts
 notebooks/
 experimentflow.txt
 ignore.txt
 projectflow.txt
+test.py
+test*.py
+
+# Python bytecode & cache across all subdirectories
+**/__pycache__/
+*.py[cod]

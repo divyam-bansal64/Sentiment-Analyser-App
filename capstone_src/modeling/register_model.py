@@ -27,8 +27,6 @@ def setup_mlflow_tracking():
     2. Try dagshub.init() using cached local DagsHub credentials.
     3. Fall back to local directory tracking (mlruns/) if offline.
     """
-    os.environ["MLFLOW_ALLOW_FILE_STORE"] = "true"
-
     dagshub_token = os.getenv(constants.DAGSHUB_TOKEN_ENV) or os.getenv("DAGSHUB_TOKEN")
     repo_owner = os.getenv("DAGSHUB_REPO_OWNER", constants.DAGSHUB_REPO_OWNER)
     repo_name = os.getenv("DAGSHUB_REPO_NAME", constants.DAGSHUB_REPO_NAME)
@@ -36,9 +34,14 @@ def setup_mlflow_tracking():
     if dagshub_token:
         os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
         os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
-        tracking_uri = f"https://dagshub.com/{repo_owner}/{repo_name}.mlflow"
-        mlflow.set_tracking_uri(tracking_uri)
-        logging.info("MLflow configured with remote DagsHub URI via token: %s", tracking_uri)
+        try:
+            import dagshub
+            dagshub.init(repo_owner=repo_owner, repo_name=repo_name, mlflow=True)
+            logging.info("MLflow & DagsHub remote artifact storage configured via token.")
+        except ImportError:
+            tracking_uri = f"https://dagshub.com/{repo_owner}/{repo_name}.mlflow"
+            mlflow.set_tracking_uri(tracking_uri)
+            logging.info("dagshub package not installed; using tracking URI only: %s", tracking_uri)
     elif os.getenv("MLFLOW_TRACKING_URI"):
         mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
         logging.info("MLflow configured with custom URI: %s", os.getenv("MLFLOW_TRACKING_URI"))
@@ -48,6 +51,7 @@ def setup_mlflow_tracking():
             dagshub.init(repo_owner=repo_owner, repo_name=repo_name, mlflow=True)
             logging.info("MLflow configured via dagshub.init() using cached credentials.")
         except Exception as e:
+            os.environ["MLFLOW_ALLOW_FILE_STORE"] = "true"
             local_mlruns = os.path.join(ROOT_DIR, "mlruns")
             mlflow.set_tracking_uri(f"file:///{local_mlruns.replace(os.sep, '/')}")
             logging.info("MLflow configured with local directory tracking fallback (%s): %s", e, local_mlruns)
@@ -85,11 +89,16 @@ def register_model(model_name: str, model_info: dict):
         except Exception:
             pass  # Model entry already exists
 
-        # Fetch exact artifact source URI from run
+        # Fetch run and construct remote MLflow artifact URI (prevents local C: drive leak)
         run = client.get_run(run_id)
-        source_uri = f"{run.info.artifact_uri}/{model_path}"
+        raw_uri = run.info.artifact_uri.replace("\\", "/")
+        if raw_uri.startswith(("c:", "C:", "file:")) or not raw_uri.startswith("mlflow-artifacts:"):
+            source_uri = f"mlflow-artifacts:/{run_id}/artifacts/{model_path}"
+        else:
+            source_uri = f"{raw_uri}/{model_path}"
 
         logging.info("Registering model '%s' from source URI: %s...", model_name, source_uri)
+
         model_version = client.create_model_version(
             name=model_name,
             source=source_uri,
@@ -103,7 +112,7 @@ def register_model(model_name: str, model_info: dict):
                 name=model_name,
                 version=model_version.version,
                 stage="Staging",
-                archive_existing_versions=False
+                archive_existing_versions=True
             )
             logging.info("Model '%s' version %s transitioned to stage 'Staging'.", model_name, model_version.version)
         except Exception as stage_err:

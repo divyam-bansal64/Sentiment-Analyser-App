@@ -96,7 +96,7 @@ stages:
       size: 38170612
     - path: models/vectorizer.pkl
       hash: md5
-      md5: b2857b1d83e4b9d87ffd8eb7323838c0
+      md5: ae7e7e109ccee90bba26e0bcf31e8ae1
       size: 574784
   model_building:
     cmd: python capstone_src/modeling/model_building.py
@@ -135,8 +135,8 @@ stages:
       size: 2170
     - path: capstone_src/modeling/model_evaluation.py
       hash: md5
-      md5: 1def5205395f7979a9836bd80c639c5c
-      size: 7417
+      md5: 8ba2ef8c2228fe2694d437073333bd6c
+      size: 7764
     - path: data/processed/test_labels.npy
       hash: md5
       md5: f9dbcb7fd07e52940f7878042f81db6c
@@ -152,7 +152,7 @@ stages:
     outs:
     - path: reports/experiment_info.json
       hash: md5
-      md5: 4495726c662e5d7bdcabad59ed3aecb8
+      md5: d2da47d48ab400d45976aa1cd2e594b2
       size: 82
     - path: reports/metrics.json
       hash: md5
@@ -167,9 +167,9 @@ stages:
       size: 2170
     - path: capstone_src/modeling/register_model.py
       hash: md5
-      md5: 5421106642cc4c2d481243c3e026082c
-      size: 5299
+      md5: 6ddd80e9c43d397a0c4fe590d3184097
+      size: 5845
     - path: reports/experiment_info.json
       hash: md5
-      md5: 4495726c662e5d7bdcabad59ed3aecb8
+      md5: d2da47d48ab400d45976aa1cd2e594b2
       size: 82

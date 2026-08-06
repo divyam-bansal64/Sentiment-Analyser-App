@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-purple: #818cf8;
+            --positive-bg: rgba(34, 197, 94, 0.15);
+            --positive-color: #4ade80;
+            --positive-border: rgba(74, 222, 128, 0.3);
+            --negative-bg: rgba(239, 68, 68, 0.15);
+            --negative-color: #f87171;
+            --negative-border: rgba(248, 113, 113, 0.3);
+            --warning-bg: rgba(245, 158, 11, 0.15);
+            --warning-color: #fbbf24;
+            --warning-border: rgba(251, 191, 36, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 580px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 36px 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--accent-purple);
+            background: rgba(129, 140, 248, 0.1);
+            border: 1px solid rgba(129, 140, 248, 0.2);
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        p.subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        textarea:focus {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+        }
+
+        textarea::placeholder {
+            color: #64748b;
+        }
+
+        button {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: #ffffff;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result-card {
+            margin-top: 24px;
+            padding: 18px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-positive {
+            background: var(--positive-bg);
+            color: var(--positive-color);
+            border: 1px solid var(--positive-border);
+        }
+
+        .result-negative {
+            background: var(--negative-bg);
+            color: var(--negative-color);
+            border: 1px solid var(--negative-border);
+        }
+
+        .result-warning {
+            background: var(--warning-bg);
+            color: var(--warning-color);
+            border: 1px solid var(--warning-border);
+            font-size: 0.95rem;
+        }
+
+        .footer-nav {
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .footer-nav a {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-nav a:hover {
+            color: var(--accent-purple);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Sentiment Analyzer</h1>
+            <p class="subtitle">Enter a comment or review below to predict sentiment</p>
+        </div>
+
+        <form action="/predict" method="POST">
+            <label for="text">Review Text:</label>
+            <textarea id="text" name="text" rows="5"
+                placeholder="e.g. This video was super informative and well explained!"></textarea>
+            <button type="submit">Analyze Sentiment</button>
+        </form>
+
+        {% if result is not none %}
+        {% if result == 'Positive' or result == 1 or result == '1' %}
+        <div class="result-card result-positive">
+            <span>😊</span> Positive Sentiment
+        </div>
+        {% elif result == 'Negative' or result == 0 or result == '0' %}
+        <div class="result-card result-negative">
+            <span>😞</span> Negative Sentiment
+        </div>
+        {% else %}
+        <div class="result-card result-warning">
+            <span>⚠️</span> {{ result }}
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <div class="footer-nav">
+            <a href="/metrics" target="_blank">📊 Expose Prometheus Metrics</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

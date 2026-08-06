@@ -32,9 +32,6 @@ def setup_mlflow_tracking():
     Uses remote DagsHub URI if environment variables are available,
     otherwise falls back to local tracking directory.
     """
-    # Allow local file-store tracking in newer MLflow versions
-    os.environ["MLFLOW_ALLOW_FILE_STORE"] = "true"
-
     dagshub_token = os.getenv(constants.DAGSHUB_TOKEN_ENV) or os.getenv("DAGSHUB_TOKEN")
     repo_owner = os.getenv("DAGSHUB_REPO_OWNER", constants.DAGSHUB_REPO_OWNER)
     repo_name = os.getenv("DAGSHUB_REPO_NAME", constants.DAGSHUB_REPO_NAME)
@@ -42,13 +39,19 @@ def setup_mlflow_tracking():
     if dagshub_token:
         os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
         os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
-        tracking_uri = f"https://dagshub.com/{repo_owner}/{repo_name}.mlflow"
-        mlflow.set_tracking_uri(tracking_uri)
-        logging.info("MLflow configured with remote DagsHub URI: %s", tracking_uri)
+        try:
+            import dagshub
+            dagshub.init(repo_owner=repo_owner, repo_name=repo_name, mlflow=True)
+            logging.info("MLflow & DagsHub remote artifact storage configured.")
+        except ImportError:
+            tracking_uri = f"https://dagshub.com/{repo_owner}/{repo_name}.mlflow"
+            mlflow.set_tracking_uri(tracking_uri)
+            logging.info("dagshub package not installed; using tracking URI only: %s", tracking_uri)
     elif os.getenv("MLFLOW_TRACKING_URI"):
         mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
         logging.info("MLflow configured with custom URI: %s", os.getenv("MLFLOW_TRACKING_URI"))
     else:
+        os.environ["MLFLOW_ALLOW_FILE_STORE"] = "true"
         local_mlruns = os.path.join(ROOT_DIR, "mlruns")
         mlflow.set_tracking_uri(f"file:///{local_mlruns.replace(os.sep, '/')}")
         logging.info("MLflow configured with local directory tracking: %s", local_mlruns)
@@ -165,25 +168,24 @@ def main():
             metrics_path = os.path.join(reports_dir, constants.METRICS_FILE_NAME)
             save_metrics(metrics, metrics_path)
 
-            # Log metrics to MLflow
-            for metric_name, metric_value in metrics.items():
-                mlflow.log_metric(metric_name, metric_value)
+            # Log all evaluation metrics (accuracy, precision, recall, f1_score, auc) in one batch payload
+            mlflow.log_metrics(metrics)
+            logging.info("Batch logged evaluation metrics to MLflow: %s", metrics)
 
-            # Log model hyperparameters to MLflow
+            # Log model hyperparameters cleanly to MLflow
             if hasattr(clf, 'get_params'):
-                params = clf.get_params()
-                for param_name, param_value in params.items():
-                    mlflow.log_param(param_name, param_value)
+                raw_params = clf.get_params()
+                clean_params = {k: str(v) for k, v in raw_params.items() if v is not None}
+                # Log top hyperparameters
+                mlflow.log_params(clean_params)
+                logging.info("Batch logged hyperparameters to MLflow.")
 
-            # Log model to MLflow
-            mlflow.sklearn.log_model(clf, artifact_path="model")
+            # Log model pickle directly as single-file artifact to DagsHub
+            mlflow.log_artifact(model_path, artifact_path="model")
 
             # Save model experiment info for registration stage
             experiment_info_path = os.path.join(reports_dir, constants.EXPERIMENT_INFO_FILE_NAME)
             save_model_info(run.info.run_id, "model", experiment_info_path)
-
-            # Log metrics JSON as an artifact in MLflow
-            mlflow.log_artifact(metrics_path)
 
             logging.info("Model Evaluation stage execution completed successfully.")
     except Exception as e:

@@ -56,17 +56,22 @@ def setup_mlflow():
         mlflow.set_tracking_uri(tracking_uri)
 
 
-def load_registered_model(model_name=REGISTERED_MODEL_NAME):
+def load_registered_model(model_name=REGISTERED_MODEL_NAME, preferred_stage=None):
     """
     Fetch and load latest model version from MLflow Model Registry.
     Downloads model.pkl artifact via mlflow.artifacts.download_artifacts().
-    Tries Production stage -> Staging stage -> Latest Version -> Local Fallback.
+    Tries Target Stage (e.g. Staging in CI) -> Production -> Staging -> Local Fallback.
     """
     setup_mlflow()
     client = mlflow.MlflowClient()
 
-    # Priority 1: Check Production and Staging stages
-    stages_to_try = ["Production", "Staging"]
+    # Priority 1: Check stages (check preferred_stage or MODEL_STAGE env var first if specified)
+    target_stage = preferred_stage or os.getenv("MODEL_STAGE")
+    if target_stage:
+        stages_to_try = [target_stage]
+    else:
+        stages_to_try = ["Production", "Staging"]
+
     for stage in stages_to_try:
         try:
             print(f"Attempting to load model from MLflow stage: '{stage}'...")

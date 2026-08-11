@@ -45,6 +45,7 @@ jobs:
               if: success()
               env:
                   CAPSTONE_TEST: ${{ secrets.CAPSTONE_TEST }}
+                  MODEL_STAGE: Staging
               run: |
                   python -m unittest basic_tests/test_flask_app.py
 

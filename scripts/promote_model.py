@@ -28,6 +28,7 @@ def promote_model():
 
     os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
     os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
+    os.environ["DAGSHUB_USER_TOKEN"] = dagshub_token
 
     # Configure MLflow tracking (dagshub.init preferred, bare URI fallback)
     try:

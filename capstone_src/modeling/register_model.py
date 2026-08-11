@@ -106,6 +106,24 @@ def register_model(model_name: str, model_info: dict):
         )
         logging.info("Registered model '%s' version %s successfully.", model_name, model_version.version)
 
+        # Set CI/CD tags on the registered model version if running in GitHub Actions
+        if os.getenv("GITHUB_ACTIONS"):
+            run_num = os.getenv("GITHUB_RUN_NUMBER", "")
+            ci_tags = {
+                "cicd_run": f"Run #{run_num}" if run_num else "CI/CD Run",
+                "cicd_run_number": run_num,
+                "ci.platform": "GitHub Actions",
+                "ci.run_id": os.getenv("GITHUB_RUN_ID", ""),
+                "ci.commit_sha": os.getenv("GITHUB_SHA", ""),
+                "ci.branch": os.getenv("GITHUB_REF_NAME", ""),
+                "ci.actor": os.getenv("GITHUB_ACTOR", ""),
+            }
+            for tag_key, tag_val in ci_tags.items():
+                try:
+                    client.set_model_version_tag(model_name, model_version.version, tag_key, tag_val)
+                except Exception as tag_err:
+                    logging.warning("Could not set model version tag %s: %s", tag_key, tag_err)
+
         # Transition to Staging stage (with alias fallback)
         try:
             client.transition_model_version_stage(

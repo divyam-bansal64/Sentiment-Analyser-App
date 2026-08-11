@@ -152,6 +152,19 @@ def main():
         mlflow.set_experiment(constants.MLFLOW_EXPERIMENT_NAME)
 
         with mlflow.start_run() as run:
+            if os.getenv("GITHUB_ACTIONS"):
+                run_num = os.getenv("GITHUB_RUN_NUMBER", "")
+                mlflow.set_tags({
+                    "mlflow.source.type": "CI/CD",
+                    "cicd_run": f"Run #{run_num}" if run_num else "CI/CD Run",
+                    "cicd_run_number": run_num,
+                    "ci.platform": "GitHub Actions",
+                    "ci.run_id": os.getenv("GITHUB_RUN_ID", ""),
+                    "ci.commit_sha": os.getenv("GITHUB_SHA", ""),
+                    "ci.branch": os.getenv("GITHUB_REF_NAME", ""),
+                    "ci.actor": os.getenv("GITHUB_ACTOR", ""),
+                })
+
             models_dir = constants.MODELS_DIR
             model_path = os.path.join(models_dir, constants.MODEL_FILE_NAME)
             clf = load_model(model_path)

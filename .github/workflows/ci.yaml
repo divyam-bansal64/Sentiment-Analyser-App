@@ -103,6 +103,12 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
+            - name: Download vectorizer artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: vectorizer-artifact
+                  path: models/
+
             - name: Login to AWS ECR
               run: |
                   aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}

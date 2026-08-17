@@ -268,3 +268,4 @@ projectflow.txt
 **/__pycache__/
 *.py[cod]
 dont need/
+setup_and_packaging_guide.md
